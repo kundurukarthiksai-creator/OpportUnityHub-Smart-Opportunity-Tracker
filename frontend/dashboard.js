@@ -117,27 +117,17 @@ async function loadDashboardData() {
     }
     
     // Priority: DB records > Cached live scraped records > Mock records
+    // Priority: DB records > Live Scrape Trigger
     if (fetchedOpps.length > 0) {
       opportunities = fetchedOpps;
+      setDataStatusBanner("live", opportunities.length, "database");
     } else {
-      const cache = localStorage.getItem("ohub_scraped_cache");
-      if (cache) {
-        try {
-          const cachedList = JSON.parse(cache);
-          if (Array.isArray(cachedList) && cachedList.length > 0) {
-            opportunities = cachedList;
-          }
-        } catch (e) {
-          console.warn("Invalid cached opportunities:", e);
-        }
-      }
-      if (opportunities.length === 0 && typeof MOCK_OPPORTUNITIES !== "undefined") {
-        opportunities = MOCK_OPPORTUNITIES.map(o => ({
-          ...o,
-          type: (o.type || "internship").toLowerCase(),
-          source: detectSource(o),
-          verified: true
-        }));
+      opportunities = [];
+      setDataStatusBanner("empty");
+      if (!window._autoFetchTriggered) {
+        window._autoFetchTriggered = true;
+        showToast("🚀 Welcome! Fetching live opportunities for your profile...", "info");
+        setTimeout(() => { fetchLiveOpportunities(); }, 400);
       }
     }
     
@@ -161,18 +151,6 @@ async function loadDashboardData() {
     renderStatsRow();
     renderDeadlineTimeline();
     renderCards();
-    
-    // Update data status banner
-    if (opportunities.length > 0) {
-      setDataStatusBanner("live", opportunities.length, "database");
-    } else {
-      setDataStatusBanner("empty");
-      // Auto-trigger live fetch on initial page load if no opportunities exist
-      if (!window._autoFetchTriggered) {
-        window._autoFetchTriggered = true;
-        fetchLiveOpportunities();
-      }
-    }
   } catch (err) {
     console.error("Dashboard load failed:", err);
     if (opportunities.length === 0) {
