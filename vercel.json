@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "outputDirectory": "frontend",
+  "routes": [
+    { "src": "/api/(.*)", "dest": "https://opportunity-hub-backend.onrender.com/api/$1" },
+    { "src": "/(.*)", "dest": "/frontend/$1" }
+  ]
+}

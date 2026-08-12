@@ -56,6 +56,47 @@ Open your browser to: **`http://localhost:8000/email-sync.html`** or **`http://l
 
 ---
 
+## 🌐 Deployment Guide
+
+### 1. Deploy Backend on Render (Render.com)
+
+1. Push your repository to GitHub.
+2. Log in to [Render Dashboard](https://dashboard.render.com/) and click **New +** -> **Web Service**.
+3. Connect your GitHub repository: `OpportUnityHub-Smart-Opportunity-Tracker`.
+4. Render will auto-detect `render.yaml` or fill in the settings:
+   - **Environment**: `Python`
+   - **Build Command**: `pip install -r backend/requirements.txt`
+   - **Start Command**: `python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+5. Add your Environment Variables in Render:
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
+   - `GOOGLE_REDIRECT_URI` (e.g. `https://your-render-app.onrender.com/api/auth/google/callback`)
+   - `JWT_SECRET`
+   - `TOKEN_ENCRYPTION_KEY`
+6. Click **Deploy Web Service**. Your backend will be live at `https://your-render-backend.onrender.com`.
+
+---
+
+### 2. Deploy Frontend on Vercel (Vercel.com)
+
+1. Log in to [Vercel Dashboard](https://vercel.com/) and click **Add New...** -> **Project**.
+2. Import your GitHub repository: `OpportUnityHub-Smart-Opportunity-Tracker`.
+3. Set **Root Directory** to `./` and **Output Directory** to `frontend`.
+4. Update `vercel.json` rewrite rule to point to your Render backend URL:
+   ```json
+   {
+     "version": 2,
+     "outputDirectory": "frontend",
+     "routes": [
+       { "src": "/api/(.*)", "dest": "https://your-render-backend.onrender.com/api/$1" },
+       { "src": "/(.*)", "dest": "/frontend/$1" }
+     ]
+   }
+   ```
+5. Click **Deploy**. Your frontend will be live on Vercel (`https://your-app.vercel.app`)!
+
+---
+
 ## 💻 Git Push Commands
 
 To push your latest changes to GitHub:
@@ -64,7 +105,7 @@ To push your latest changes to GitHub:
 git init
 git remote add origin https://github.com/kundurukarthik15-gif/OpportUnityHub-Smart-Opportunity-Tracker.git
 git add .
-git commit -m "Feat: Complete full-stack email sync, security filtering, user isolation, and persistent DB"
+git commit -m "Feat: Deploy ready configuration for Render backend and Vercel frontend"
 git branch -M main
 git push -u origin main --force
 ```

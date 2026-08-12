@@ -2,7 +2,9 @@
 // DASHBOARD JS — OpportUnity Hub
 // ============================================
 
-const API_BASE = window.location.origin;
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '8000' 
+  ? 'http://localhost:8000' 
+  : (localStorage.getItem('ohub_backend_url') || window.location.origin);
 const token = localStorage.getItem("ohub_token");
 
 let opportunities     = [];
