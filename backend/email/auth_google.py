@@ -22,12 +22,12 @@ SCOPES = [
     "https://www.googleapis.com/auth/gmail.modify"
 ]
 
+from fastapi import APIRouter, HTTPException, Depends, Query, Request
+
 @router.get("/url")
-def get_google_auth_url(token: str = Query(...), redirect_uri: Optional[str] = Query(None)):
+def get_google_auth_url(request: Request, token: str = Query(...), redirect_uri: Optional[str] = Query(None)):
     """
-    Generate Google OAuth redirect URL.
-    Expects the user's JWT token to authenticate who is requesting the connection.
-    Passes user_id as state parameter to identify user in callback.
+    Generate Google OAuth redirect URL dynamically based on deployment host.
     """
     if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
         raise HTTPException(status_code=400, detail="Google Client ID/Secret not configured in .env file.")
@@ -37,11 +37,16 @@ def get_google_auth_url(token: str = Query(...), redirect_uri: Optional[str] = Q
         raise HTTPException(status_code=401, detail="Session expired or invalid token. Please sign in again.")
 
     user_id = payload["sub"]
-    target_redirect = (redirect_uri or settings.GOOGLE_REDIRECT_URI).strip()
+    
+    # Calculate base callback URI dynamically
+    base_callback = str(request.base_url).rstrip("/") + "/api/auth/google/callback"
+    target_redirect = redirect_uri or settings.GOOGLE_REDIRECT_URI or base_callback
+    if "localhost" in settings.GOOGLE_REDIRECT_URI and "localhost" not in str(request.base_url):
+        target_redirect = base_callback
 
     params = {
         "client_id": settings.GOOGLE_CLIENT_ID.strip(),
-        "redirect_uri": target_redirect,
+        "redirect_uri": target_redirect.strip(),
         "response_type": "code",
         "scope": " ".join(SCOPES),
         "access_type": "offline",
@@ -50,7 +55,6 @@ def get_google_auth_url(token: str = Query(...), redirect_uri: Optional[str] = Q
         "state": user_id
     }
     
-    # Must use quote_via=urllib.parse.quote so spaces in scope encode as %20 (Google OAuth requirement)
     encoded_params = urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
     auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{encoded_params}"
     return {"url": auth_url}
@@ -77,11 +81,9 @@ def connect_demo_gmail(token: str = Query(...)):
     return {"status": "success", "email": user_email}
 
 @router.get("/callback")
-def google_callback(code: Optional[str] = None, state: Optional[str] = None, error: Optional[str] = None):
+def google_callback(request: Request, code: Optional[str] = None, state: Optional[str] = None, error: Optional[str] = None):
     """
     Callback endpoint for Google OAuth.
-    Validates user state, exchanges code for access/refresh tokens,
-    retrieves connected Gmail address, encrypts refresh token, and saves it.
     """
     if error:
         logger.error(f"Google OAuth error callback: {error}")
@@ -93,7 +95,6 @@ def google_callback(code: Optional[str] = None, state: Optional[str] = None, err
     if not code or not state:
         raise HTTPException(status_code=400, detail="Missing code or state")
 
-    # 1. Identify user from state (user_id UUID or token fallback)
     user_id = state
     user = None
     try:
@@ -114,7 +115,6 @@ def google_callback(code: Optional[str] = None, state: Optional[str] = None, err
             pass
 
     if not user:
-        # Fallback to session user object so authentication succeeds seamlessly
         user = {
             "id": user_id or "demo-user-id",
             "email": "student@opportunityhub.com",
@@ -122,13 +122,19 @@ def google_callback(code: Optional[str] = None, state: Optional[str] = None, err
         }
         user_id = user["id"]
 
+    # Calculate target redirect URI dynamically matching the OAuth request
+    base_callback = str(request.base_url).rstrip("/") + "/api/auth/google/callback"
+    target_redirect = settings.GOOGLE_REDIRECT_URI or base_callback
+    if "localhost" in settings.GOOGLE_REDIRECT_URI and "localhost" not in str(request.base_url):
+        target_redirect = base_callback
+
     # 2. Exchange authorization code for tokens
     token_url = "https://oauth2.googleapis.com/token"
     token_data = {
         "code": code,
         "client_id": settings.GOOGLE_CLIENT_ID,
         "client_secret": settings.GOOGLE_CLIENT_SECRET,
-        "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+        "redirect_uri": target_redirect.strip(),
         "grant_type": "authorization_code"
     }
 

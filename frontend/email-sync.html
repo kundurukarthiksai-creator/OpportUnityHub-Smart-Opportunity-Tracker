@@ -175,7 +175,7 @@
     <div class="modal-body">
       <div class="modal-meta-row">
         <div><strong>From:</strong> <span id="modalSender"></span></div>
-        <div><strong>To:</strong> <span id="modalRecipient">codewithkarthik8@gmail.com</span></div>
+        <div><strong>To:</strong> <span id="modalRecipient">Me</span></div>
         <div><strong>Deadline:</strong> <span id="modalDeadline"></span></div>
       </div>
       <div class="email-body-box" id="modalBodyText"></div>
@@ -245,7 +245,7 @@ async function checkGmailStatus() {
       
       // Clear demo cache if real gmail is connected
       const cached = localStorage.getItem("ohub_email_cache");
-      if (cached && (cached.includes("codewithkarthik8@gmail.com") || cached.includes("Google STEP Internship 2026"))) {
+      if (cached && cached.includes("Google STEP Internship 2026")) {
         localStorage.removeItem("ohub_email_cache");
       }
 
@@ -301,7 +301,11 @@ async function connectGmail() {
   }
   
   try {
-    const res = await fetch(`${API_BASE}/api/auth/google/url?token=${encodeURIComponent(token)}`);
+    const redirectUri = API_BASE.includes("localhost") 
+      ? "http://localhost:8000/api/auth/google/callback" 
+      : `${API_BASE}/api/auth/google/callback`;
+
+    const res = await fetch(`${API_BASE}/api/auth/google/url?token=${encodeURIComponent(token)}&redirect_uri=${encodeURIComponent(redirectUri)}`);
     if (res.status === 401) {
       alert("Session expired. Please sign in again to connect your Gmail.");
       localStorage.clear();
@@ -336,6 +340,9 @@ async function connectGmail() {
 async function importDemoEmails() {
   showToast("⚡ Importing sample email opportunities...", "");
   
+  const userObj = JSON.parse(localStorage.getItem("ohub_user") || "{}");
+  const userEmail = userObj.email || "student@university.edu";
+
   const sampleOpps = [
     {
       title: "Google STEP Internship 2026",
@@ -347,7 +354,7 @@ async function importDemoEmails() {
       apply_link: "https://careers.google.com",
       description: "Received via Email: Application invitation for Google STEP Internship 2026.",
       source: "gmail",
-      source_email: "codewithkarthik8@gmail.com",
+      source_email: userEmail,
       source_sender: "Google University Recruiting <jobs-noreply@google.com>",
     },
     {
@@ -360,7 +367,7 @@ async function importDemoEmails() {
       apply_link: "https://imaginecup.microsoft.com",
       description: "Received via Email: You are invited to register for Microsoft Imagine Cup 2026.",
       source: "gmail",
-      source_email: "codewithkarthik8@gmail.com",
+      source_email: userEmail,
       source_sender: "Microsoft Student Developer <imaginecup@microsoft.com>",
     }
   ];
@@ -381,7 +388,7 @@ async function importDemoEmails() {
     document.getElementById("emailsSection").style.display = "block";
     const statusTitle = document.querySelector(".auto-title");
     if (statusTitle) {
-      statusTitle.innerHTML = `Gmail connected (Demo) · <strong>codewithkarthik8@gmail.com</strong> <span style="cursor:pointer;color:var(--accent-red);font-size:11px;margin-left:10px" onclick="location.reload()">[Reset]</span>`;
+      statusTitle.innerHTML = `Gmail connected (Demo) · <strong>${userEmail}</strong> <span style="cursor:pointer;color:var(--accent-red);font-size:11px;margin-left:10px" onclick="location.reload()">[Reset]</span>`;
     }
     await loadEmailOpportunities();
     showToast("✅ Sample email opportunities imported!", "success");
@@ -419,7 +426,7 @@ const DEFAULT_DEMO_EMAILS = [
     application_link: "https://careers.google.com/students",
     description: "Application invitation for Google STEP (Student Training in Engineering Program) Internship 2026.",
     source: "gmail",
-    source_email: "codewithkarthik8@gmail.com",
+    source_email: "",
     source_sender: "Google University Recruiting <jobs-noreply@google.com>",
   },
   {
@@ -432,7 +439,7 @@ const DEFAULT_DEMO_EMAILS = [
     application_link: "https://imaginecup.microsoft.com",
     description: "You are invited to register for Microsoft Imagine Cup 2026 global developer hackathon.",
     source: "gmail",
-    source_email: "codewithkarthik8@gmail.com",
+    source_email: "",
     source_sender: "Microsoft Student Developer <imaginecup@microsoft.com>",
   },
   {
@@ -445,7 +452,7 @@ const DEFAULT_DEMO_EMAILS = [
     application_link: "https://amazonmlsummerschool.com",
     description: "Registration confirmed for Amazon Machine Learning Summer School 2026.",
     source: "gmail",
-    source_email: "codewithkarthik8@gmail.com",
+    source_email: "",
     source_sender: "Amazon University Programs <ml-school@amazon.com>",
   },
   {
@@ -458,7 +465,7 @@ const DEFAULT_DEMO_EMAILS = [
     application_link: "https://uber.com/careers/hacktag",
     description: "Official invitation to participate in Uber HackTag Engineering Challenge 2026.",
     source: "gmail",
-    source_email: "codewithkarthik8@gmail.com",
+    source_email: "",
     source_sender: "Uber Tech Talent <hacktag@uber.com>",
   },
   {
@@ -471,7 +478,7 @@ const DEFAULT_DEMO_EMAILS = [
     application_link: "https://tesla.com/careers/fellowship",
     description: "Selection notification for Tesla AI & Autonomous Systems Fellowship program.",
     source: "gmail",
-    source_email: "codewithkarthik8@gmail.com",
+    source_email: "",
     source_sender: "Tesla AI Team <robotics-fellowship@tesla.com>",
   }
 ];
@@ -595,6 +602,11 @@ function openEmailModal(idx) {
   const sender = item.source_sender || item.source_email || "Google Gmail Service";
   const deadline = item.deadline || "N/A";
   const link = item.application_link || item.applyLink || "https://mail.google.com";
+
+  const user = JSON.parse(localStorage.getItem("ohub_user") || "{}");
+  const recipient = item.source_email || user.email || "Connected Gmail";
+  const recipEl = document.getElementById("modalRecipient");
+  if (recipEl) recipEl.textContent = recipient;
 
   subj.textContent = `${title} (${org})`;
   send.textContent = sender;
