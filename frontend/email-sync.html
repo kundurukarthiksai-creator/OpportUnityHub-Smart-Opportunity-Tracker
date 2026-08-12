@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Email Sync — OpportUnity Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="global.css">
+  <link rel="stylesheet" href="dashboard.css">
+  <style>
+    .email-connect-card { background: linear-gradient(135deg, rgba(110,231,247,0.06), rgba(167,139,250,0.06)); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 48px; text-align: center; margin-bottom: 32px; position: relative; overflow: hidden; }
+    .email-connect-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .email-icon-lg { font-size: 48px; margin-bottom: 16px; }
+    .email-connect-title { font-family: var(--font-display); font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .email-connect-sub { color: var(--text-secondary); font-size: 14px; max-width: 400px; margin: 0 auto 28px; }
+    .btn-connect-gmail { display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; background: #fff; color: #333; font-weight: 700; font-size: 15px; border-radius: var(--radius-md); transition: var(--transition); border: none; cursor: pointer; font-family: var(--font-display); }
+    .btn-connect-gmail:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(255,255,255,0.2); }
+    .email-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; display: flex; align-items: center; gap: 16px; transition: var(--transition); margin-bottom: 12px; }
+    .email-card:hover { background: var(--bg-card-hover); border-color: var(--border-hover); }
+    .email-card-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .email-card-body { flex: 1; }
+    .email-card-subject { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+    .email-card-from { font-size: 12px; color: var(--text-muted); }
+    .email-card-time { font-size: 11px; color: var(--text-muted); }
+    .email-card-action { display: flex; align-items: center; gap: 8px; }
+    .add-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; background: rgba(110,231,247,0.1); border: 1px solid rgba(110,231,247,0.2); border-radius: 50px; color: var(--accent); font-size: 12px; font-weight: 700; cursor: pointer; transition: var(--transition); }
+    .add-btn:hover { background: rgba(110,231,247,0.2); }
+    .added-badge { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); border-radius: 50px; color: var(--accent3); font-size: 12px; font-weight: 700; }
+
+    .view-email-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.35);
+      border-radius: 50px;
+      color: #818cf8;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .view-email-btn:hover { background: rgba(99,102,241,0.3); transform: translateY(-1px); }
+
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .modal-card {
+      background: #14171c;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      max-width: 650px; width: 100%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.8);
+      display: flex; flex-direction: column;
+      max-height: 85vh;
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.02);
+    }
+    .modal-title-row { display: flex; align-items: center; gap: 12px; }
+    .modal-close-btn {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 20px; cursor: pointer; padding: 4px 8px; border-radius: 6px;
+    }
+    .modal-close-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+    .modal-meta-row {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px; margin-bottom: 20px;
+      font-size: 13px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .email-body-box {
+      font-family: var(--font-main);
+      font-size: 13px; line-height: 1.7;
+      color: var(--text-primary);
+      white-space: pre-wrap; word-break: break-word;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+    }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: flex-end; gap: 12px;
+      background: rgba(255,255,255,0.01);
+    }
+  </style>
+</head>
+<body>
+<div class="main-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span class="logo-icon">◈</span><span>OpportUnity</span></div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html"><span class="nav-icon">◉</span> Dashboard</a>
+      <a href="opportunities.html"><span class="nav-icon">⊞</span> All Opportunities</a>
+      <a href="saved.html"><span class="nav-icon">◈</span> Saved</a>
+      <a href="applied.html"><span class="nav-icon">✓</span> Applied</a>
+      <a href="deadline-tracker.html"><span class="nav-icon">⏰</span> Deadlines</a>
+      <a href="email-sync.html" class="active"><span class="nav-icon">✉</span> Email Sync</a>
+      <a href="profile.html"><span class="nav-icon">◎</span> Profile</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="sidebarAvatar">RK</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarName">Student</div>
+          <div class="user-email" id="sidebarEmail">student@uni.edu</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>📧 Email Sync</h1>
+      <p>Connect your Gmail to automatically detect and import opportunity emails</p>
+    </div>
+
+    <div class="email-connect-card" id="connectSection">
+      <div class="email-icon-lg">📬</div>
+      <div class="email-connect-title">Connect your Gmail</div>
+      <div class="email-connect-sub">We scan for subject lines like "Internship Opportunity", "Hackathon Registration", etc. and automatically import them.</div>
+      <button class="btn-connect-gmail" onclick="connectGmail()">
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Connect Gmail Account
+      </button>
+      <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="filter-btn" onclick="connectDemoGmail()" style="font-size:12px;padding:8px 18px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:#818cf8;font-weight:600">⚡ 1-Click Demo Gmail Sync</button>
+        <button class="filter-btn" onclick="importDemoEmails()" style="font-size:12px;padding:8px 18px;background:rgba(255,255,255,0.06)">Import Sample Opportunities</button>
+      </div>
+    </div>
+
+    <div id="emailsSection" style="display:none">
+      <div class="automation-panel" style="margin-bottom:24px">
+        <div class="auto-status-dot"></div>
+        <div class="auto-info">
+          <div class="auto-title">Gmail connected · student@gmail.com</div>
+          <div class="auto-sub">Scanning inbox every 30 minutes · Syncing active</div>
+        </div>
+        <button class="trigger-scrape-btn" onclick="scanEmails()">📧 Scan Now</button>
+      </div>
+
+      <div class="section-heading">
+        <h2>Detected Opportunities in Email</h2>
+        <span style="font-size:13px;color:var(--text-muted)">0 imported</span>
+      </div>
+
+      <div id="emailList"></div>
+    </div>
+  </main>
+<!-- EMAIL PREVIEW MODAL -->
+<div class="modal-overlay" id="emailModalOverlay" style="display:none" onclick="closeEmailModal(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-row">
+        <span style="font-size:24px">📬</span>
+        <h3 id="modalSubject" style="font-family:var(--font-display);font-size:18px;font-weight:700">Email Details</h3>
+      </div>
+      <button class="modal-close-btn" onclick="closeEmailModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-meta-row">
+        <div><strong>From:</strong> <span id="modalSender"></span></div>
+        <div><strong>To:</strong> <span id="modalRecipient">codewithkarthik8@gmail.com</span></div>
+        <div><strong>Deadline:</strong> <span id="modalDeadline"></span></div>
+      </div>
+      <div class="email-body-box" id="modalBodyText"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="filter-btn" onclick="closeEmailModal()">Close</button>
+      <a id="modalApplyBtn" href="#" target="_blank" class="btn-primary" style="padding:10px 20px;font-size:13px">Apply Directly →</a>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const API_BASE = window.location.origin;
+let token = localStorage.getItem("ohub_token");
+let emailOpps = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (!token) {
+    window.location.href = "login.html";
+    return;
+  }
+  
+  // Set User Profile headers
+  const user = JSON.parse(localStorage.getItem("ohub_user") || "{}");
+  const name = user.name || "Student";
+  const email = user.email || "student@university.edu";
+  const initials = name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+  document.getElementById("sidebarAvatar").textContent = initials;
+  document.getElementById("sidebarName").textContent = name;
+  document.getElementById("sidebarEmail").textContent = email;
+
+  checkGmailStatus();
+  
+  // Listen for popup callback message
+  window.addEventListener("message", (event) => {
+    if (event.data && event.data.type === "GMAIL_CONNECTED") {
+      showToast(`✅ Gmail connected: ${event.data.email}`, "success");
+      checkGmailStatus();
+    }
+  });
+});
+
+async function checkGmailStatus() {
+  try {
+    const res = await fetch(`${API_BASE}/api/gmail/status`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    
+    if (res.status === 401) {
+      localStorage.clear();
+      window.location.href = "login.html";
+      return;
+    }
+    
+    const data = await res.json();
+    if (data.connected) {
+      document.getElementById("connectSection").style.display = "none";
+      document.getElementById("emailsSection").style.display = "block";
+      
+      // Update status panel text
+      const statusTitle = document.querySelector(".auto-title");
+      statusTitle.innerHTML = `Gmail connected · <strong>${data.email}</strong> <span style="cursor:pointer;color:var(--accent-red);font-size:11px;margin-left:10px" onclick="disconnectGmail()">[Disconnect]</span>`;
+      
+      // Clear demo cache if real gmail is connected
+      const cached = localStorage.getItem("ohub_email_cache");
+      if (cached && (cached.includes("codewithkarthik8@gmail.com") || cached.includes("Google STEP Internship 2026"))) {
+        localStorage.removeItem("ohub_email_cache");
+      }
+
+      await loadEmailOpportunities();
+
+      // If no opportunities loaded from DB or demo cache lingering, auto-scan real inbox
+      if (emailOpps.length === 0 || emailOpps.some(o => o.title === "Google STEP Internship 2026")) {
+        scanEmails();
+      }
+    } else {
+      document.getElementById("connectSection").style.display = "block";
+      document.getElementById("emailsSection").style.display = "none";
+    }
+  } catch (err) {
+    console.error("Error reading Gmail connection status:", err);
+    showToast("⚠️ Backend offline — could not verify Gmail status.", "warning");
+  }
+}
+
+async function connectDemoGmail() {
+  const token = localStorage.getItem("ohub_token");
+  if (!token) return;
+  
+  showToast("⚡ Connecting Demo Gmail account...", "");
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/google/demo-connect?token=${encodeURIComponent(token)}`, {
+      method: "POST"
+    });
+    const data = await res.json();
+    if (data.status === "success") {
+      showToast(`✅ Demo Gmail Linked: ${data.email}`, "success");
+      checkGmailStatus();
+    } else {
+      throw new Error(data.detail || "Demo connection failed");
+    }
+  } catch (err) {
+    showToast(`❌ Connection Error: ${err.message}`, "error");
+  }
+}
+
+async function connectGmail() {
+  const token = localStorage.getItem("ohub_token");
+  if (!token) {
+    alert("Session expired. Please sign in again.");
+    window.location.href = "login.html";
+    return;
+  }
+
+  const btn = document.querySelector(".btn-connect-gmail");
+  if (btn) {
+    btn.innerHTML = '<div class="spinner"></div> Connecting to Google...';
+    btn.disabled = true;
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/google/url?token=${encodeURIComponent(token)}`);
+    if (res.status === 401) {
+      alert("Session expired. Please sign in again to connect your Gmail.");
+      localStorage.clear();
+      window.location.href = "login.html";
+      return;
+    }
+    
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `Server returned error status ${res.status}`);
+    }
+    
+    const data = await res.json();
+    if (!data.url) throw new Error("No authorization URL returned from server.");
+    
+    console.log("Redirecting to Google OAuth URL:", data.url);
+    // Direct navigation opens Google auth directly in tab
+    window.location.href = data.url;
+  } catch (err) {
+    console.error("connectGmail failed:", err);
+    alert(`Could not connect to Google OAuth:\n${err.message}`);
+    showToast(`❌ OAuth Error: ${err.message}`, "error");
+    if (btn) {
+      btn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Connect Gmail Account`;
+      btn.disabled = false;
+    }
+  }
+}
+
+async function importDemoEmails() {
+  showToast("⚡ Importing sample email opportunities...", "");
+  
+  const sampleOpps = [
+    {
+      title: "Google STEP Internship 2026",
+      organization: "Google",
+      type: "internship",
+      location: "Bangalore / Remote",
+      stipend: "₹1,20,000/mo",
+      deadline: "2026-08-20",
+      apply_link: "https://careers.google.com",
+      description: "Received via Email: Application invitation for Google STEP Internship 2026.",
+      source: "gmail",
+      source_email: "codewithkarthik8@gmail.com",
+      source_sender: "Google University Recruiting <jobs-noreply@google.com>",
+    },
+    {
+      title: "Microsoft Imagine Cup 2026",
+      organization: "Microsoft",
+      type: "hackathon",
+      location: "Online / Global",
+      stipend: "$100,000 Grand Prize",
+      deadline: "2026-08-28",
+      apply_link: "https://imaginecup.microsoft.com",
+      description: "Received via Email: You are invited to register for Microsoft Imagine Cup 2026.",
+      source: "gmail",
+      source_email: "codewithkarthik8@gmail.com",
+      source_sender: "Microsoft Student Developer <imaginecup@microsoft.com>",
+    }
+  ];
+
+  try {
+    for (const opp of sampleOpps) {
+      await fetch(`${API_BASE}/api/opportunities`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(opp)
+      }).catch(() => {});
+    }
+
+    document.getElementById("connectSection").style.display = "none";
+    document.getElementById("emailsSection").style.display = "block";
+    const statusTitle = document.querySelector(".auto-title");
+    if (statusTitle) {
+      statusTitle.innerHTML = `Gmail connected (Demo) · <strong>codewithkarthik8@gmail.com</strong> <span style="cursor:pointer;color:var(--accent-red);font-size:11px;margin-left:10px" onclick="location.reload()">[Reset]</span>`;
+    }
+    await loadEmailOpportunities();
+    showToast("✅ Sample email opportunities imported!", "success");
+  } catch (err) {
+    showToast("Failed to import demo emails.", "error");
+  }
+}
+
+async function disconnectGmail() {
+  if (!confirm("Are you sure you want to disconnect your Gmail account?")) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/gmail/disconnect`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (res.ok) {
+      emailOpps = [];
+      localStorage.removeItem("ohub_email_cache");
+      showToast("Disconnected Gmail successfully.", "success");
+      checkGmailStatus();
+    }
+  } catch (err) {
+    showToast("Failed to disconnect Gmail account.", "error");
+  }
+}
+
+const DEFAULT_DEMO_EMAILS = [
+  {
+    title: "Google STEP Internship 2026",
+    organization: "Google",
+    category: "Internship",
+    location: "Bangalore / Remote",
+    stipend: "₹1,20,000/mo",
+    deadline: "2026-08-25",
+    application_link: "https://careers.google.com/students",
+    description: "Application invitation for Google STEP (Student Training in Engineering Program) Internship 2026.",
+    source: "gmail",
+    source_email: "codewithkarthik8@gmail.com",
+    source_sender: "Google University Recruiting <jobs-noreply@google.com>",
+  },
+  {
+    title: "Microsoft Imagine Cup 2026",
+    organization: "Microsoft",
+    category: "Hackathon",
+    location: "Online / Global",
+    stipend: "$100,000 Grand Prize",
+    deadline: "2026-08-30",
+    application_link: "https://imaginecup.microsoft.com",
+    description: "You are invited to register for Microsoft Imagine Cup 2026 global developer hackathon.",
+    source: "gmail",
+    source_email: "codewithkarthik8@gmail.com",
+    source_sender: "Microsoft Student Developer <imaginecup@microsoft.com>",
+  },
+  {
+    title: "Amazon ML Summer School 2026",
+    organization: "Amazon",
+    category: "Workshop",
+    location: "Online / India",
+    stipend: "Free Certificate & Mentorship",
+    deadline: "2026-09-05",
+    application_link: "https://amazonmlsummerschool.com",
+    description: "Registration confirmed for Amazon Machine Learning Summer School 2026.",
+    source: "gmail",
+    source_email: "codewithkarthik8@gmail.com",
+    source_sender: "Amazon University Programs <ml-school@amazon.com>",
+  },
+  {
+    title: "Uber HackTag 2026",
+    organization: "Uber",
+    category: "Hackathon",
+    location: "Hyderabad / Hybrid",
+    stipend: "₹5,000,000 Prize Pool",
+    deadline: "2026-09-10",
+    application_link: "https://uber.com/careers/hacktag",
+    description: "Official invitation to participate in Uber HackTag Engineering Challenge 2026.",
+    source: "gmail",
+    source_email: "codewithkarthik8@gmail.com",
+    source_sender: "Uber Tech Talent <hacktag@uber.com>",
+  },
+  {
+    title: "Tesla AI & Robotics Fellowship 2026",
+    organization: "Tesla",
+    category: "Scholarship",
+    location: "Palo Alto / Remote",
+    stipend: "$12,000/mo Fellowship",
+    deadline: "2026-09-15",
+    application_link: "https://tesla.com/careers/fellowship",
+    description: "Selection notification for Tesla AI & Autonomous Systems Fellowship program.",
+    source: "gmail",
+    source_email: "codewithkarthik8@gmail.com",
+    source_sender: "Tesla AI Team <robotics-fellowship@tesla.com>",
+  }
+];
+
+async function loadEmailOpportunities() {
+  emailOpps = [];
+  const isConnected = document.getElementById("connectSection").style.display === "none";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/opportunities`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const fetched = (data.opportunities || []).filter(o => 
+        o.source_email || o.email_id || o.source === "gmail" || (o.source_sender && o.source_sender.includes("@"))
+      );
+      if (fetched.length > 0) {
+        emailOpps = fetched;
+      }
+    }
+  } catch (err) {
+    console.error("Failed to load DB email opportunities:", err);
+  }
+
+  if (emailOpps.length === 0) {
+    const cache = localStorage.getItem("ohub_email_cache");
+    if (cache) {
+      try {
+        const cachedList = JSON.parse(cache);
+        // Only use cache if it doesn't contain demo mock data when connected to real gmail
+        const hasDemoMock = Array.isArray(cachedList) && cachedList.some(o => o.title === "Google STEP Internship 2026");
+        if (Array.isArray(cachedList) && cachedList.length > 0 && (!isConnected || !hasDemoMock)) {
+          emailOpps = cachedList;
+        }
+      } catch (e) {}
+    }
+  }
+
+  // Only fall back to DEFAULT_DEMO_EMAILS if NOT connected to a real Gmail account
+  if (emailOpps.length === 0 && !isConnected) {
+    emailOpps = DEFAULT_DEMO_EMAILS;
+    try {
+      localStorage.setItem("ohub_email_cache", JSON.stringify(emailOpps));
+    } catch (e) {}
+  }
+
+  renderEmails();
+  
+  const countSpan = document.querySelector(".section-heading span");
+  if (countSpan) countSpan.textContent = `${emailOpps.length} imported`;
+  
+  const subLabel = document.querySelector(".auto-sub");
+  if (subLabel) {
+    subLabel.textContent = `Scanning inbox every 30 minutes · ${emailOpps.length} imported opportunity email${emailOpps.length === 1 ? '' : 's'}`;
+  }
+}
+
+function renderEmails() {
+  const list = document.getElementById("emailList");
+  
+  if (emailOpps.length === 0) {
+    list.innerHTML = `
+      <div style="text-align:center;padding:50px 20px;color:var(--text-muted);background:rgba(255,255,255,0.02);border-radius:12px;border:1px dashed var(--border-color)">
+        <p style="font-size:15px;margin-bottom:12px">📥 No opportunity emails (internships, jobs, hackathons) detected in your inbox yet.</p>
+        <button class="trigger-scrape-btn" onclick="scanEmails()" style="padding:8px 18px;font-size:13px;cursor:pointer">📧 Scan Inbox Now</button>
+      </div>`;
+    return;
+  }
+
+  const categoryIcons = {
+    "Internship": "🏢",
+    "Job": "💼",
+    "Hackathon": "💻",
+    "Scholarship": "🎓",
+    "Workshop": "🛠️",
+    "Conference": "🗣️",
+    "Certification": "📜",
+    "General": "🌟"
+  };
+
+  list.innerHTML = emailOpps.map((e, idx) => `
+    <div class="email-card" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;margin-bottom:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+      <div style="display:flex;align-items:center;gap:14px;flex:1">
+        <div class="email-card-icon" style="background:rgba(110,231,247,0.1);padding:10px;border-radius:10px;font-size:20px">
+          ${categoryIcons[e.category] || "📧"}
+        </div>
+        <div class="email-card-body">
+          <div class="email-card-subject" style="font-weight:600;font-size:15px;color:var(--text-primary)">${escapeHtml(e.title)} <span style="color:var(--accent-blue);font-weight:500">@ ${escapeHtml(e.organization)}</span></div>
+          <div class="email-card-from" style="font-size:12px;color:var(--text-muted);margin-top:4px">
+            From: ${escapeHtml(e.source_sender || e.source_email || "Gmail Inbox")} · Deadline: <strong>${escapeHtml(e.deadline || "N/A")}</strong>
+          </div>
+        </div>
+      </div>
+      <div class="email-card-action" style="display:flex;align-items:center;gap:8px">
+        <button class="view-email-btn" onclick="openEmailModal(${idx})" style="padding:6px 12px;font-size:12px;cursor:pointer;background:rgba(255,255,255,0.06);border:1px solid var(--border-color);border-radius:6px;color:var(--text-primary)">✉ View Email</button>
+        <button onclick="toggleSaveEmailOpp(${idx})" style="padding:6px 10px;font-size:12px;cursor:pointer;background:${e.saved ? 'rgba(251,191,36,0.2)' : 'rgba(255,255,255,0.04)'};border:1px solid ${e.saved ? '#f59e0b' : 'var(--border-color)'};border-radius:6px;color:${e.saved ? '#f59e0b' : 'var(--text-muted)'}">
+          ${e.saved ? '⭐ Saved' : '☆ Save'}
+        </button>
+        <button onclick="toggleApplyEmailOpp(${idx})" style="padding:6px 10px;font-size:12px;cursor:pointer;background:${e.applied ? 'rgba(52,211,153,0.2)' : 'rgba(255,255,255,0.04)'};border:1px solid ${e.applied ? '#34d399' : 'var(--border-color)'};border-radius:6px;color:${e.applied ? '#34d399' : 'var(--text-muted)'}">
+          ${e.applied ? '✓ Applied' : 'Mark Applied'}
+        </button>
+        <span class="badge badge-${(e.category || e.type || 'general').toLowerCase()}" style="font-size:10px;padding:4px 8px;border-radius:4px;background:rgba(110,231,247,0.12);color:var(--accent-blue)">${escapeHtml(e.category || e.type || 'General')}</span>
+      </div>
+    </div>`).join("");
+}
+
+function openEmailModal(idx) {
+  const item = emailOpps[idx];
+  if (!item) return;
+
+  const modal = document.getElementById("emailModalOverlay");
+  const subj = document.getElementById("modalSubject");
+  const send = document.getElementById("modalSender");
+  const dead = document.getElementById("modalDeadline");
+  const body = document.getElementById("modalBodyText");
+  const applyBtn = document.getElementById("modalApplyBtn");
+
+  const title = item.title || item.role || "Opportunity Email";
+  const org = item.organization || item.company || "Unknown";
+  const sender = item.source_sender || item.source_email || "Google Gmail Service";
+  const deadline = item.deadline || "N/A";
+  const link = item.application_link || item.applyLink || "https://mail.google.com";
+
+  subj.textContent = `${title} (${org})`;
+  send.textContent = sender;
+  dead.textContent = deadline;
+  
+  let contentText = item.description || item.body || "";
+  if (!contentText || contentText.length < 40) {
+    contentText = `From: ${sender}
+Subject: ${title} — ${org}
+
+Dear Candidate,
+
+You have received an official opportunity update from ${org} regarding:
+• Title: ${title}
+• Category: ${item.category || item.type || "Opportunity"}
+• Location: ${item.location || "Remote / On-site"}
+• Stipend / Reward: ${item.stipend || "N/A"}
+• Deadline: ${deadline}
+
+Application Details:
+Please submit your application before the deadline using the direct link below.
+
+Official Link: ${link}`;
+  }
+
+  body.textContent = contentText;
+  applyBtn.href = link;
+  modal.style.display = "flex";
+}
+
+function closeEmailModal(e) {
+  if (!e || e.target.id === "emailModalOverlay" || e.type === "click") {
+    const modal = document.getElementById("emailModalOverlay");
+    if (modal) modal.style.display = "none";
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+async function scanEmails() {
+  const btn = document.querySelector(".trigger-scrape-btn");
+  if (btn) {
+    btn.innerHTML = '<div class="spinner"></div> Scanning...';
+    btn.disabled = true;
+  }
+  
+  showToast("📧 Synchronizing Gmail inbox...", "");
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/gmail/sync`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || "Sync failed");
+    }
+
+    const data = await res.json();
+    if (data.opportunities && data.opportunities.length > 0) {
+      emailOpps = data.opportunities;
+      try {
+        localStorage.setItem("ohub_email_cache", JSON.stringify(emailOpps));
+      } catch (e) {}
+      renderEmails();
+      const countSpan = document.querySelector(".section-heading span");
+      if (countSpan) countSpan.textContent = `${emailOpps.length} imported`;
+      const subLabel = document.querySelector(".auto-sub");
+      if (subLabel) {
+        subLabel.textContent = `Scanning inbox every 30 minutes · ${emailOpps.length} imported opportunity email${emailOpps.length === 1 ? '' : 's'}`;
+      }
+    } else {
+      await loadEmailOpportunities();
+    }
+
+    showToast(`✅ ${data.message || "Scan complete!"}`, "success");
+  } catch (err) {
+    showToast(`❌ Sync failed: ${err.message}`, "error");
+  } finally {
+    if (btn) {
+      btn.innerHTML = "📧 Scan Now";
+      btn.disabled = false;
+    }
+  }
+}
+
+async function disconnectGmail() {
+  if (!confirm("Are you sure you want to disconnect your connected Gmail account?")) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/gmail/disconnect`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (res.ok) {
+      showToast("✅ Gmail account disconnected successfully", "success");
+      localStorage.removeItem("ohub_email_cache");
+      emailOpps = [];
+      await checkGmailStatus();
+    }
+  } catch (err) {
+    showToast("❌ Could not disconnect Gmail", "error");
+  }
+}
+
+async function toggleSaveEmailOpp(idx) {
+  const item = emailOpps[idx];
+  if (!item || !item.id) return;
+  const newSaved = !item.saved;
+  item.saved = newSaved;
+  renderEmails();
+  try {
+    await fetch(`${API_BASE}/api/opportunities/${item.id}/status?saved=${newSaved}`, {
+      method: "PUT",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    showToast(newSaved ? "⭐ Opportunity Saved" : "Opportunity Unsaved", "info");
+  } catch (e) {}
+}
+
+async function toggleApplyEmailOpp(idx) {
+  const item = emailOpps[idx];
+  if (!item || !item.id) return;
+  const newApplied = !item.applied;
+  item.applied = newApplied;
+  renderEmails();
+  try {
+    await fetch(`${API_BASE}/api/opportunities/${item.id}/status?applied=${newApplied}`, {
+      method: "PUT",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    showToast(newApplied ? "✅ Marked as Applied!" : "Unmarked as Applied", "success");
+  } catch (e) {}
+}
+
+function showToast(message, type = "") {
+  const container = document.getElementById("toastContainer");
+  if (!container) return;
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = "0"; setTimeout(() => toast.remove(), 300); }, 3200);
+}
+</script>
+</body>
+</html>
