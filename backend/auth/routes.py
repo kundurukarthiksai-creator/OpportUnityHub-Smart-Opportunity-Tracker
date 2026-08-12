@@ -152,7 +152,7 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[
 # ── API Models ───────────────────────────────────────────────
 
 class UserRegister(BaseModel):
-    email: EmailStr
+    email: str
     password: str
     name: str
     university: Optional[str] = None
@@ -160,7 +160,7 @@ class UserRegister(BaseModel):
     year: Optional[str] = None
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 # ── Endpoints ─────────────────────────────────────────────────

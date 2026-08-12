@@ -118,7 +118,10 @@ async function handleLogin() {
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div> Signing in...';
   try {
-    const apiBase = window.location.origin;
+    const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '8000' 
+      ? 'http://localhost:8000' 
+      : (localStorage.getItem('ohub_backend_url') || window.location.origin);
+      
     const response = await fetch(`${apiBase}/api/auth/login`, {
       method: "POST",
       headers: {
@@ -130,7 +133,13 @@ async function handleLogin() {
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.detail || "Authentication failed");
+      let msg = "Authentication failed";
+      if (typeof result.detail === "string") {
+        msg = result.detail;
+      } else if (Array.isArray(result.detail)) {
+        msg = result.detail.map(d => d.msg || JSON.stringify(d)).join(", ");
+      }
+      throw new Error(msg);
     }
 
     // Save token and user details in localStorage

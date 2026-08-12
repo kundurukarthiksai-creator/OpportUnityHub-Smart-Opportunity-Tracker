@@ -124,7 +124,6 @@
 
 <script>
 async function handleSignup() {
-
   const firstName = document.getElementById("firstName").value.trim();
   const lastName = document.getElementById("lastName").value.trim();
   const email = document.getElementById("signupEmail").value.trim();
@@ -134,40 +133,50 @@ async function handleSignup() {
   const password = document.getElementById("signupPassword").value;
 
   const errEl = document.getElementById("signupError");
+  const btn = document.getElementById("signupBtn");
 
   if (!firstName || !email || !password) {
     errEl.style.display = "block";
-    errEl.textContent = "Please fill all required fields.";
+    errEl.textContent = "Please fill in your name, email, and password.";
     return;
   }
 
+  errEl.style.display = "none";
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Creating account...';
+
   const data = {
-    name: firstName + " " + lastName,
+    name: (firstName + " " + lastName).trim(),
     email: email,
     password: password,
-    university: university,
-    branch: branch,
-    year: year
+    university: university || "University",
+    branch: branch || "Computer Science",
+    year: year || "3rd Year"
   };
 
   try {
-    const apiBase = window.location.origin;
+    const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '8000' 
+      ? 'http://localhost:8000' 
+      : (localStorage.getItem('ohub_backend_url') || window.location.origin);
+      
     const response = await fetch(`${apiBase}/api/auth/register`, {
-
       method: "POST",
-
       headers: {
         "Content-Type": "application/json"
       },
-
       body: JSON.stringify(data)
-
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.detail || "Signup failed");
+      let msg = "Signup failed";
+      if (typeof result.detail === "string") {
+        msg = result.detail;
+      } else if (Array.isArray(result.detail)) {
+        msg = result.detail.map(d => d.msg || JSON.stringify(d)).join(", ");
+      }
+      throw new Error(msg);
     }
 
     // store user session
@@ -177,10 +186,10 @@ async function handleSignup() {
     window.location.href = "dashboard.html";
 
   } catch (err) {
-
     errEl.style.display = "block";
     errEl.textContent = err.message;
-
+    btn.disabled = false;
+    btn.innerHTML = "Create my account →";
   }
 }
 
