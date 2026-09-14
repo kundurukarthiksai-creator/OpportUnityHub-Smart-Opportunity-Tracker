@@ -1,0 +1,29 @@
+/* Mobile landing navigation polish.
+   Keeps the header readable on narrow screens without changing desktop nav. */
+@media (max-width: 768px) {
+  .nav {
+    padding: 0 16px;
+  }
+
+  .logo {
+    font-size: 16px;
+  }
+
+  .logo-icon {
+    font-size: 18px;
+  }
+
+  .nav-links {
+    gap: 10px;
+  }
+
+  .nav-links > a:not(.btn-primary) {
+    display: none;
+  }
+
+  .nav-links .btn-primary {
+    padding: 8px 14px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+}
