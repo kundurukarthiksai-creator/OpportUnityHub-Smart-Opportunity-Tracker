@@ -1,111 +1,109 @@
-# 🚀 OpportUnity Hub — Smart Opportunity Tracker
+# OpportUnityHub Smart Opportunity Tracker
 
-> Full-stack AI-powered career opportunity tracking platform for students and developers. Automatically syncs Gmail inboxes, scrapes top opportunity portals (Internshala, Devpost, Unstop, Remotive), and organizes internships, hackathons, and job applications.
+FastAPI-based opportunity tracker for students and developers, combining Gmail sync, opportunity scraping, authenticated workflows, and local/Supabase-backed storage.
 
----
+## What It Does
 
-## ✨ Features
+OpportUnityHub helps track internships, jobs, hackathons, and career opportunities from multiple sources:
 
-- 📧 **Automated Gmail Inbox Sync**: Scans your Gmail inbox for internships, job offers, and hackathon invitations with AI and rule-based parsing.
-- 🛡️ **Smart Security & Spam Filtering**: Automatically filters out security alerts, OTP verification emails, and non-opportunity notifications.
-- 🕸️ **Multi-Source Live Scrapers**: Real-time scrapers for Internshala, Devpost, Unstop, and Remotive.
-- 🔒 **User Isolation & JWT Authentication**: Multi-tenant architecture with encrypted tokens and isolated account storage.
-- 💾 **Resilient Storage Engine**: Works seamlessly with Supabase Cloud DB as well as local persistent offline storage (`.local_db.json`).
-- ⚡ **Full Stack Production Ready**: Built for deployment on Web, Android (PWA/Capacitor), and iOS.
+- Gmail opportunity emails
+- Internshala
+- Devpost
+- Unstop
+- Remotive
+- Saved/applied status workflows
 
----
+The project is designed as a portfolio-grade backend/product system, with demo-mode paths for local testing and real OAuth/Supabase paths for deeper setup.
 
-## 🛠️ Tech Stack
+## Features
 
-- **Backend**: Python 3.13, FastAPI, Uvicorn, Pydantic, Httpx, Google OAuth 2.0, Google GenAI / OpenAI SDKs
-- **Database**: Supabase PostgREST / Python SDK with Local Memory & Disk Persistence
-- **Frontend**: Responsive Modern HTML5, Vanilla JavaScript, CSS Glassmorphism
+- FastAPI backend.
+- Static responsive frontend.
+- JWT authentication and per-user opportunity records.
+- Google OAuth/Gmail sync flow.
+- Rule-based and AI-assisted email classification path.
+- Scrapers for multiple opportunity sources.
+- Supabase-backed storage with local fallback.
+- Saved/applied/deleted status workflows.
+- Render/Vercel deployment configuration.
 
----
+## Important Maturity Note
 
-## 🚀 Quick Start
+This is not yet a production-hardened system.
 
-### 1. Clone Repository & Setup Virtual Environment
+Known limitations:
+
+- Demo-mode paths exist for local testing.
+- CORS is broad and should be restricted before production use.
+- Secret values must be supplied through environment variables.
+- Default development secrets must be replaced.
+- Gmail OAuth setup must be configured carefully for each deployment URL.
+
+## Tech Stack
+
+- Python
+- FastAPI
+- Uvicorn
+- Pydantic
+- Google OAuth / Gmail API
+- Supabase or local persistence
+- BeautifulSoup / requests / httpx
+- Vanilla HTML/CSS/JavaScript
+
+## Local Setup
+
 ```bash
-git clone https://github.com/kundurukarthik15-gif/OpportUnityHub-Smart-Opportunity-Tracker.git
-cd OpportUnityHub-Smart-Opportunity-Tracker
-
 python -m venv venv
-# On Windows:
 venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
-```
-
-### 2. Install Dependencies
-```bash
 pip install -r backend/requirements.txt
-```
-
-### 3. Environment Setup
-Copy `.env.example` to `.env` and populate your Google OAuth Client ID & Secret:
-```bash
-cp .env.example .env
-```
-
-### 4. Run Backend Server
-```bash
+copy .env.example .env
 python -m uvicorn backend.main:app --reload --port 8000
 ```
-Open your browser to: **`http://localhost:8000/email-sync.html`** or **`http://localhost:8000/index.html`**.
 
----
+Then open:
 
-## 🌐 Deployment Guide
-
-### 1. Deploy Backend on Render (Render.com)
-
-1. Push your repository to GitHub.
-2. Log in to [Render Dashboard](https://dashboard.render.com/) and click **New +** -> **Web Service**.
-3. Connect your GitHub repository: `OpportUnityHub-Smart-Opportunity-Tracker`.
-4. Render will auto-detect `render.yaml` or fill in the settings:
-   - **Environment**: `Python`
-   - **Build Command**: `pip install -r backend/requirements.txt`
-   - **Start Command**: `python -m uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-5. Add your Environment Variables in Render:
-   - `GOOGLE_CLIENT_ID`
-   - `GOOGLE_CLIENT_SECRET`
-   - `GOOGLE_REDIRECT_URI` (e.g. `https://your-render-app.onrender.com/api/auth/google/callback`)
-   - `JWT_SECRET`
-   - `TOKEN_ENCRYPTION_KEY`
-6. Click **Deploy Web Service**. Your backend will be live at `https://your-render-backend.onrender.com`.
-
----
-
-### 2. Deploy Frontend on Vercel (Vercel.com)
-
-1. Log in to [Vercel Dashboard](https://vercel.com/) and click **Add New...** -> **Project**.
-2. Import your GitHub repository: `OpportUnityHub-Smart-Opportunity-Tracker`.
-3. Set **Root Directory** to `./` and **Output Directory** to `frontend`.
-4. Update `vercel.json` rewrite rule to point to your Render backend URL:
-   ```json
-   {
-     "version": 2,
-     "outputDirectory": "frontend",
-     "routes": [
-       { "src": "/api/(.*)", "dest": "https://your-render-backend.onrender.com/api/$1" },
-       { "src": "/(.*)", "dest": "/frontend/$1" }
-     ]
-   }
-   ```
-5. Click **Deploy**. Your frontend will be live on Vercel (`https://your-app.vercel.app`)!
-
----
-
-## 💻 Git Push Commands
-
-To push your latest changes to GitHub:
-
-```bash
-git init
-git remote add origin https://github.com/kundurukarthik15-gif/OpportUnityHub-Smart-Opportunity-Tracker.git
-git add .
-git commit -m "Feat: Deploy ready configuration for Render backend and Vercel frontend"
-git branch -M main
-git push -u origin main --force
+```text
+http://localhost:8000/index.html
+http://localhost:8000/email-sync.html
 ```
+
+## Environment Variables
+
+Use `.env.example` as the source of truth.
+
+Core variables:
+
+- `SUPABASE_URL`
+- `SUPABASE_KEY`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REDIRECT_URI`
+- `GEMINI_API_KEY` or `OPENAI_API_KEY`
+- `JWT_SECRET`
+- `TOKEN_ENCRYPTION_KEY`
+
+## Verification Status
+
+Verified locally:
+
+- Python syntax compile passed for backend modules and test/debug scripts.
+
+Not yet verified:
+
+- Full FastAPI runtime boot.
+- Gmail OAuth flow.
+- Scraper reliability.
+- Supabase deployment path.
+
+## Cleanup Needed
+
+- Replace old GitHub account links.
+- Remove force-push instructions from README.
+- Add screenshots.
+- Add a clear demo-mode vs real-OAuth explanation.
+- Restrict CORS before production deployment.
+- Replace default development secrets in any real deployment.
+
+## Resume Angle
+
+Built a FastAPI opportunity tracker that syncs Gmail, scrapes opportunity portals, filters non-opportunity messages, and stores internships, hackathons, and jobs behind authenticated user workflows.
