@@ -93,21 +93,26 @@ Core variables:
 Verified locally:
 
 - Python syntax compile passed for backend modules and test/debug scripts.
+- Fresh public clone dependency install passed with `pip install -r backend/requirements.txt`.
+- `pip check` reported no broken requirements.
+- FastAPI runtime boot passed with `python -m uvicorn backend.main:app`.
+- `/api/health` returned status `ok` in local fallback mode.
+- Static frontend serving passed for `/index.html`.
+- Protected opportunity routes correctly return `401` without a bearer token.
+- Local fallback auth smoke test passed: registering a disposable test user returned a token, `/api/auth/me` returned that user, and `/api/opportunities/stats` returned an empty dashboard state.
 
 Not yet verified:
 
-- Full FastAPI runtime boot.
 - Gmail OAuth flow.
 - Scraper reliability.
 - Supabase deployment path.
 
 ## Cleanup Needed
 
-- Replace old GitHub account links.
-- Remove force-push instructions from README.
-- Add a clear demo-mode vs real-OAuth explanation.
 - Restrict CORS before production deployment.
 - Replace default development secrets in any real deployment.
+- Pin or lock dependency versions for more reproducible setup.
+- Add an automated smoke test for health, static frontend serving, and local fallback auth.
 
 ## Resume Angle
 
