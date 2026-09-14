@@ -1,5 +1,7 @@
 # OpportUnityHub Smart Opportunity Tracker
 
+[![CI](https://github.com/kundurukarthiksai-creator/OpportUnityHub-Smart-Opportunity-Tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/kundurukarthiksai-creator/OpportUnityHub-Smart-Opportunity-Tracker/actions/workflows/ci.yml)
+
 FastAPI-based opportunity tracker for students and developers, combining Gmail sync, opportunity scraping, authenticated workflows, and local/Supabase-backed storage.
 
 ## What It Does
@@ -17,7 +19,7 @@ The project is designed as a portfolio-grade backend/product system, with demo-m
 
 ## Screenshot
 
-Captured from the static frontend landing page. Full dashboard runtime and authenticated flows still need backend verification.
+Captured from the static frontend landing page. Full Gmail OAuth and Supabase-backed dashboard flows still need configured-environment verification.
 
 ![OpportUnityHub landing page](docs/images/landing-hero-desktop.png)
 
@@ -66,6 +68,12 @@ copy .env.example .env
 python -m uvicorn backend.main:app --reload --port 8000
 ```
 
+Run the local smoke test:
+
+```bash
+python scripts/smoke-test.py
+```
+
 Then open:
 
 ```text
@@ -100,6 +108,8 @@ Verified locally:
 - Static frontend serving passed for `/index.html`.
 - Protected opportunity routes correctly return `401` without a bearer token.
 - Local fallback auth smoke test passed: registering a disposable test user returned a token, `/api/auth/me` returned that user, and `/api/opportunities/stats` returned an empty dashboard state.
+- Automated smoke test added at `scripts/smoke-test.py`.
+- GitHub Actions CI added for dependency install, `pip check`, and the smoke test.
 
 Not yet verified:
 
@@ -112,7 +122,6 @@ Not yet verified:
 - Restrict CORS before production deployment.
 - Replace default development secrets in any real deployment.
 - Pin or lock dependency versions for more reproducible setup.
-- Add an automated smoke test for health, static frontend serving, and local fallback auth.
 
 ## Resume Angle
 
