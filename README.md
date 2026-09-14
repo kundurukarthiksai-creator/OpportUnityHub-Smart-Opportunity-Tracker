@@ -15,6 +15,12 @@ OpportUnityHub helps track internships, jobs, hackathons, and career opportuniti
 
 The project is designed as a portfolio-grade backend/product system, with demo-mode paths for local testing and real OAuth/Supabase paths for deeper setup.
 
+## Screenshot
+
+Captured from the static frontend landing page. Full dashboard runtime and authenticated flows still need backend verification.
+
+![OpportUnityHub landing page](docs/images/landing-hero-desktop.png)
+
 ## Features
 
 - FastAPI backend.
@@ -99,7 +105,6 @@ Not yet verified:
 
 - Replace old GitHub account links.
 - Remove force-push instructions from README.
-- Add screenshots.
 - Add a clear demo-mode vs real-OAuth explanation.
 - Restrict CORS before production deployment.
 - Replace default development secrets in any real deployment.
