@@ -125,4 +125,4 @@ Not yet verified:
 
 ## Resume Angle
 
-Built a FastAPI opportunity tracker that syncs Gmail, scrapes opportunity portals, filters non-opportunity messages, and stores internships, hackathons, and jobs behind authenticated user workflows.
+Built and smoke-tested a FastAPI opportunity tracker with authenticated user workflows, local fallback storage, protected opportunity routes, Gmail/scraper integration paths, and internship/job/hackathon tracking views.
