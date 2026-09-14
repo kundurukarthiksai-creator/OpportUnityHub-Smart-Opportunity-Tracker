@@ -35,11 +35,11 @@ Captured from the static frontend landing page. Full Gmail OAuth and Supabase-ba
 - Saved/applied/deleted status workflows.
 - Render/Vercel deployment configuration.
 
-## Important Maturity Note
+## Honest Limits
 
 This is not yet a production-hardened system.
 
-Known limitations:
+Known limits:
 
 - Demo-mode paths exist for local testing.
 - CORS is broad and should be restricted before production use.
